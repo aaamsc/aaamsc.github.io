@@ -1,0 +1,51 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AAAMSC Firebase Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 40px 15px;
+      background: #f3f5f9;
+    }
+    .card {
+      background: white;
+      padding: 25px;
+      border-radius: 15px;
+      max-width: 420px;
+      margin: auto;
+    }
+    #status { font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>AAAMSC Firebase Test</h2>
+    <p id="status">Connecting to Firebase...</p>
+  </div>
+
+  <script type="module">
+    import { auth, db } from "./firebase.js";
+
+    const status = document.getElementById("status");
+
+    try {
+      if (auth && db) {
+        status.textContent =
+          "Firebase SDK initialized successfully!";
+        status.style.color = "green";
+      } else {
+        throw new Error("Firebase services unavailable.");
+      }
+    } catch (error) {
+      status.textContent = "Connection error: " + error.message;
+      status.style.color = "red";
+      console.error(error);
+    }
+  </script>
+</body>
+</html>
