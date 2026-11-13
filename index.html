@@ -177,7 +177,37 @@
           </div>
         </div>
 
-        <button id="submitButton" type="submit">SUBMIT REGISTRATION <span aria-hidden="true">→</span></button>
+
+          <div class="field full">
+            <div style="margin-top:8px;padding:18px;border:1px solid rgba(255,112,184,.35);border-radius:16px;background:linear-gradient(135deg,rgba(226,45,115,.16),rgba(157,123,255,.12));">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+                <strong style="font-size:1.05rem;">Registration Fee</strong>
+                <span style="padding:6px 11px;border-radius:999px;background:rgba(255,112,184,.18);color:#ffc0dc;font-weight:800;">৳20 BDT</span>
+              </div>
+              <p style="margin:13px 0 5px;color:#f4dce9;font-size:.9rem;">Pay ৳20 using <strong>bKash Send Money</strong> to this number:</p>
+              <div style="font-size:1.55rem;font-weight:850;letter-spacing:.04em;color:#fff;">01607026896</div>
+              <p style="margin:9px 0 0;color:#b9c1df;font-size:.8rem;line-height:1.5;">After sending the fee, enter the bKash number you sent from and the Transaction ID (TrxID) below. The organizer will check the payment manually. Do not enter or share your bKash PIN or OTP.</p>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="senderNumber">Your bKash Sender Number <span class="required">*</span></label>
+            <input id="senderNumber" name="bKash Sender Number" type="tel" inputmode="tel" placeholder="e.g. 01XXXXXXXXX" pattern="01[0-9]{9}" maxlength="11" required>
+          </div>
+
+          <div class="field">
+            <label for="trxid">bKash Transaction ID (TrxID) <span class="required">*</span></label>
+            <input id="trxid" name="bKash Transaction ID" type="text" placeholder="Enter the TrxID from bKash" minlength="5" maxlength="30" required>
+          </div>
+
+          <div class="field full">
+            <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;">
+              <input type="checkbox" name="Payment Declaration" value="I have sent ৳20 by bKash Send Money" required style="width:18px;min-height:18px;margin:2px 0 0;accent-color:#35d6c4;">
+              <span style="color:#e7eaff;line-height:1.5;">I have sent ৳20 by bKash Send Money and the payment details above are correct. <span class="required">*</span></span>
+            </label>
+          </div>
+
+        <button id="submitButton" type="submit">SUBMIT REGISTRATION & PAYMENT DETAILS <span aria-hidden="true">→</span></button>
         <div id="status" class="status" role="alert"></div>
         <p class="privacy">Your registration details will be sent to the AAAMSC organizer for fest administration.</p>
       </form>
