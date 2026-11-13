@@ -86,6 +86,7 @@
     .privacy { color: #9ba5c9; text-align: center; font-size: .78rem; line-height: 1.5; margin: 14px 4px 0; }
     .footer { color: #818bad; text-align: center; font-size: .8rem; margin-top: 22px; }
     .status { display: none; margin-top: 16px; padding: 13px 14px; border-radius: 12px; font-size: .9rem; line-height: 1.5; }
+    .status.success { display: block; color: #c8fff3; background: rgba(53,214,196,.12); border: 1px solid rgba(53,214,196,.32); }
     .status.error { display: block; color: #ffd4df; background: rgba(255,90,130,.12); border: 1px solid rgba(255,90,130,.3); }
     .honeypot { position: absolute; left: -5000px; }
     @media (max-width: 560px) {
@@ -220,17 +221,34 @@
     const button = document.getElementById('submitButton');
     const statusBox = document.getElementById('status');
 
-    form.addEventListener('submit', function (event) {
-      if (!form.reportValidity()) {
-        event.preventDefault();
-        return;
-      }
-      // Let the browser submit normally to FormSubmit. This message is informational only;
-      // the external service's response confirms whether the submission was accepted.
+    form.addEventListener('submit', async function (event) {
+      event.preventDefault();
+      if (!form.reportValidity()) return;
+
       button.disabled = true;
       button.textContent = 'SENDING…';
       statusBox.className = 'status';
       statusBox.textContent = '';
+
+      try {
+        const response = await fetch(form.action, {
+          method: 'POST',
+          body: new FormData(form),
+          headers: { 'Accept': 'application/json' }
+        });
+        if (!response.ok) throw new Error('Submission was not accepted.');
+
+        statusBox.className = 'status success';
+        statusBox.textContent = '✓ Submission completed! Your registration details have been sent to the organizer. Your payment will be checked manually.';
+        form.reset();
+        button.textContent = 'SUBMIT ANOTHER REGISTRATION';
+        button.disabled = false;
+      } catch (error) {
+        statusBox.className = 'status error';
+        statusBox.textContent = 'We could not confirm your submission. Please check your internet connection and try again. If this continues, contact the organizer.';
+        button.disabled = false;
+        button.textContent = 'TRY SUBMITTING AGAIN';
+      }
     });
   </script>
 </body>
