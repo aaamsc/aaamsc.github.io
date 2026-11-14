@@ -177,6 +177,30 @@
           await signOut(auth);
           throw new Error("Administrator access is inactive.");
         }
+        
+const idToken = await user.getIdToken();
+
+const backendResponse = await fetch(
+  "https://aaamsc-backend.jbrjubair7.workers.dev/api/admin-check",
+  {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${idToken}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({})
+  }
+);
+
+const backendResult = await backendResponse.json();
+
+if (!backendResponse.ok || !backendResult.success) {
+  await signOut(auth);
+  throw new Error(
+    backendResult.error || "Organizer authorization failed."
+  );
+}
+
 
         message.style.color = "green";
         message.textContent = "Organizer verified successfully!";
