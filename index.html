@@ -233,65 +233,125 @@
   </main>
 
   <script>
-    const form = document.getElementById('registrationForm');
-    const button = document.getElementById('submitButton');
-    const statusBox = document.getElementById('status');
-    const classSelect = document.getElementById('classLevel');
-    const categoryInput = document.getElementById('category');
+    
+const form = document.getElementById('registrationForm');
+const button = document.getElementById('submitButton');
+const statusBox = document.getElementById('status');
+const classSelect = document.getElementById('classLevel');
+const categoryInput = document.getElementById('category');
 
-    // Automatically assign the category based on class.
-    classSelect.addEventListener('change', function () {
-      const selectedClass = Number(classSelect.value);
+const WORKER_URL =
+  'https://aaamsc-backend.jbrjubair7.workers.dev/api/register';
 
-      if (selectedClass === 7 || selectedClass === 8) {
-        categoryInput.value = 'Category 01';
-      } else if (selectedClass === 9 || selectedClass === 10) {
-        categoryInput.value = 'Category 02';
-      } else {
-        categoryInput.value = '';
-      }
+// Automatically assign category.
+classSelect.addEventListener('change', function () {
+  const selectedClass = Number(classSelect.value);
+
+  if (selectedClass === 7 || selectedClass === 8) {
+    categoryInput.value = 'Category 01';
+  } else if (selectedClass === 9 || selectedClass === 10) {
+    categoryInput.value = 'Category 02';
+  } else {
+    categoryInput.value = '';
+  }
+});
+
+form.addEventListener('submit', async function (event) {
+  event.preventDefault();
+
+  if (!form.reportValidity()) return;
+
+  // Honeypot spam check.
+  const formData = new FormData(form);
+
+  if (formData.get('_honey')) {
+    form.reset();
+    categoryInput.value = '';
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = 'SUBMITTING…';
+  statusBox.className = 'status';
+  statusBox.textContent = '';
+
+  const payload = {
+    name: formData.get('Full Name'),
+    email: formData.get('Email Address'),
+    classLevel: formData.get('Class'),
+    section: formData.get('Section'),
+    rollNumber: formData.get('Roll Number'),
+    competition: formData.get('Competition'),
+    aaamscMember: formData.get('AAAMSC Member'),
+    previousParticipation: formData.get('Previous Participation'),
+    bkashSenderNumber: formData.get('bKash Sender Number'),
+    bkashTransactionId: formData.get('bKash Transaction ID'),
+    paymentDeclaration:
+      Boolean(formData.get('Payment Declaration'))
+  };
+
+  try {
+    // First: save registration in Cloudflare D1.
+    const response = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
     });
 
-    form.addEventListener('submit', async function (event) {
-      event.preventDefault();
+    const result = await response.json();
 
-      if (!form.reportValidity()) return;
+    if (!response.ok || !result.success) {
+      throw new Error(
+        result.error || 'Registration could not be saved.'
+      );
+    }
 
-      button.disabled = true;
-      button.textContent = 'SENDING…';
-      statusBox.className = 'status';
-      statusBox.textContent = '';
+    // Second: send the organizer email notification.
+    let emailSent = false;
 
-      try {
-        const response = await fetch(form.action, {
-          method: 'POST',
-          body: new FormData(form),
-          headers: { 'Accept': 'application/json' }
-        });
-
-        if (!response.ok) {
-          throw new Error('Submission was not accepted.');
+    try {
+      const emailResponse = await fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Accept': 'application/json'
         }
+      });
 
-        statusBox.className = 'status success';
-        statusBox.textContent =
-          '✓ Submission completed! Your registration details have been sent to the organizer. Your payment will be checked manually.';
+      emailSent = emailResponse.ok;
+    } catch (emailError) {
+      emailSent = false;
+    }
 
-        form.reset();
-        categoryInput.value = '';
+    statusBox.className = 'status success';
 
-        button.textContent = 'SUBMIT ANOTHER REGISTRATION';
-        button.disabled = false;
+    if (emailSent) {
+      statusBox.textContent =
+        '✓ Registration completed successfully! Your registration has been saved. The organizer has also been notified by email. Your payment will be checked manually.';
+    } else {
+      statusBox.textContent =
+        '✓ Your registration has been saved successfully! However, the organizer email notification could not be confirmed. Your registration is not lost.';
+    }
 
-      } catch (error) {
-        statusBox.className = 'status error';
-        statusBox.textContent =
-          'We could not confirm your submission. Please check your internet connection and try again. If this continues, contact the organizer.';
+    form.reset();
+    categoryInput.value = '';
 
-        button.disabled = false;
-        button.textContent = 'TRY SUBMITTING AGAIN';
-      }
-    });
+    button.textContent = 'SUBMIT ANOTHER REGISTRATION';
+    button.disabled = false;
+
+  } catch (error) {
+    statusBox.className = 'status error';
+    statusBox.textContent =
+      'Registration could not be confirmed. ' +
+      (error.message || 'Please try again or contact the organizer.');
+
+    button.disabled = false;
+    button.textContent = 'TRY SUBMITTING AGAIN';
+  }
+});
+
   </script>
 </body>
 </html>
