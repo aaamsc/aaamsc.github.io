@@ -208,13 +208,15 @@ if (!backendResponse.ok || !backendResult.success) {
   );
 }
 
-
         message.style.color = "green";
-        message.textContent = "Organizer verified successfully!";
+message.textContent = "Organizer verified successfully!";
 
-        // Dashboard will be added after backend authorization is ready.
-        button.disabled = true;
+button.disabled = true;
 
+setTimeout(() => {
+  window.location.href = "./admin-dashboard.html";
+}, 700);
+        
       } catch (error) {
         message.style.color = "#c62828";
         message.textContent = error.message;
