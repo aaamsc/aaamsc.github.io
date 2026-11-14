@@ -1,1 +1,438 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AAAMSC | Participant Portal</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #101b35, #174b75);
+      color: #172033;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 420px;
+      padding: 30px;
+      border-radius: 18px;
+      background: white;
+      box-shadow: 0 15px 45px #0004;
+    }
+
+    .brand {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      color: #174b75;
+      font-size: 25px;
+    }
+
+    .brand p {
+      color: #64748b;
+      font-size: 14px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 22px;
+    }
+
+    label {
+      display: block;
+      margin: 14px 0 6px;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    input {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    input:focus {
+      outline: 2px solid #3b82f6;
+      border-color: #3b82f6;
+    }
+
+    button {
+      width: 100%;
+      padding: 13px;
+      margin-top: 16px;
+      border: none;
+      border-radius: 8px;
+      background: #174b75;
+      color: white;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: .6;
+      cursor: wait;
+    }
+
+    .secondary {
+      background: #e8eef5;
+      color: #174b75;
+    }
+
+    .switch {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .switch a {
+      color: #1769aa;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    #message {
+      margin-top: 18px;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      display: none;
+      line-height: 1.5;
+    }
+
+    .error {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .success {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .hidden { display: none !important; }
+
+    .footer {
+      margin-top: 22px;
+      text-align: center;
+      color: #64748b;
+      font-size: 12px;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="container">
+    <div class="brand">
+      <h1>AAAMSC</h1>
+      <p>Online Fest | Participant Portal</p>
+    </div>
+
+    <section id="registerSection">
+      <h2>Create Account</h2>
+
+      <form id="registerForm">
+        <label for="registerEmail">Registered Email</label>
+        <input
+          id="registerEmail"
+          type="email"
+          autocomplete="email"
+          required
+        >
+
+        <label for="registerPassword">Create Password</label>
+        <input
+          id="registerPassword"
+          type="password"
+          minlength="8"
+          autocomplete="new-password"
+          required
+        >
+
+        <label for="confirmPassword">Confirm Password</label>
+        <input
+          id="confirmPassword"
+          type="password"
+          minlength="8"
+          autocomplete="new-password"
+          required
+        >
+
+        <button id="registerButton" type="submit">
+          Create Account
+        </button>
+      </form>
+
+      <div class="switch">
+        Already registered?
+        <a id="showLogin">Login here</a>
+      </div>
+    </section>
+
+    <section id="loginSection" class="hidden">
+      <h2>Participant Login</h2>
+
+      <form id="loginForm">
+        <label for="loginEmail">Email Address</label>
+        <input
+          id="loginEmail"
+          type="email"
+          autocomplete="email"
+          required
+        >
+
+        <label for="loginPassword">Password</label>
+        <input
+          id="loginPassword"
+          type="password"
+          autocomplete="current-password"
+          required
+        >
+
+        <button id="loginButton" type="submit">
+          Login
+        </button>
+      </form>
+
+      <button id="resetPassword" class="secondary" type="button">
+        Forgot Password?
+      </button>
+
+      <div class="switch">
+        New participant?
+        <a id="showRegister">Create an account</a>
+      </div>
+    </section>
+
+    <div id="message" role="status" aria-live="polite"></div>
+
+    <div class="footer">
+      AAAMSC Online Fest © 2026
+    </div>
+  </main>
+
+  <script type="module">
+    import {
+      auth
+    } from "./firebase.js";
+
+    import {
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword,
+      sendEmailVerification,
+      sendPasswordResetEmail,
+      signOut,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+
+    const API =
+      "https://aaamsc-backend.jbrjubair7.workers.dev";
+
+    const $ = id => document.getElementById(id);
+
+    function showMessage(message, type = "error") {
+      const box = $("message");
+      box.textContent = message;
+      box.className = type;
+      box.style.display = "block";
+    }
+
+    function clearMessage() {
+      $("message").style.display = "none";
+    }
+
+    function switchSection(section) {
+      $("registerSection").classList.toggle(
+        "hidden", section !== "register"
+      );
+      $("loginSection").classList.toggle(
+        "hidden", section !== "login"
+      );
+      clearMessage();
+    }
+
+    $("showLogin").addEventListener("click", () => {
+      switchSection("login");
+    });
+
+    $("showRegister").addEventListener("click", () => {
+      switchSection("register");
+    });
+
+    async function linkParticipant(user) {
+      const token = await user.getIdToken(true);
+
+      const response = await fetch(API + "/api/participant-link", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer " + token
+        }
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Account linking failed.");
+      }
+
+      return data;
+    }
+
+    $("registerForm").addEventListener("submit", async event => {
+      event.preventDefault();
+
+      const button = $("registerButton");
+      const email = $("registerEmail").value.trim().toLowerCase();
+      const password = $("registerPassword").value;
+      const confirm = $("confirmPassword").value;
+
+      if (password !== confirm) {
+        return showMessage("Passwords do not match.");
+      }
+
+      if (password.length < 8) {
+        return showMessage("Password must contain at least 8 characters.");
+      }
+
+      button.disabled = true;
+      button.textContent = "Creating account...";
+      clearMessage();
+
+      let user = null;
+
+      try {
+        const credential =
+          await createUserWithEmailAndPassword(auth, email, password);
+
+        user = credential.user;
+
+        await sendEmailVerification(user);
+
+        showMessage(
+          "Account created! Please verify your email using the link sent to your inbox. After verification, return here and log in.",
+          "success"
+        );
+
+        $("registerForm").reset();
+        switchSection("login");
+        $("loginEmail").value = email;
+
+        showMessage(
+          "Please verify your email from your inbox before logging in.",
+          "success"
+        );
+
+      } catch (error) {
+        if (user) {
+          try {
+            await signOut(auth);
+          } catch {}
+        }
+
+        const messages = {
+          "auth/email-already-in-use": "An account already exists for this email. Please log in.",
+          "auth/invalid-email": "Please enter a valid email address.",
+          "auth/weak-password": "Choose a stronger password.",
+          "auth/operation-not-allowed": "Email/password login is not enabled in Firebase."
+        };
+
+        showMessage(
+          messages[error.code] || error.message
+        );
+
+      } finally {
+        button.disabled = false;
+        button.textContent = "Create Account";
+      }
+    });
+
+    $("loginForm").addEventListener("submit", async event => {
+      event.preventDefault();
+
+      const button = $("loginButton");
+      const email = $("loginEmail").value.trim().toLowerCase();
+      const password = $("loginPassword").value;
+
+      button.disabled = true;
+      button.textContent = "Checking...";
+      clearMessage();
+
+      try {
+        const credential =
+          await signInWithEmailAndPassword(auth, email, password);
+
+        const user = credential.user;
+
+        await user.reload();
+
+        if (!user.emailVerified) {
+          await signOut(auth);
+          throw new Error(
+            "Please verify your email first. Check your inbox."
+          );
+        }
+
+        await linkParticipant(user);
+
+        showMessage(
+          "Account verified and linked successfully! Your participant dashboard is the next step.",
+          "success"
+        );
+
+        $("loginForm").reset();
+
+      } catch (error) {
+        try {
+          await signOut(auth);
+        } catch {}
+
+        showMessage(error.message || "Login failed.");
+
+      } finally {
+        button.disabled = false;
+        button.textContent = "Login";
+      }
+    });
+
+    $("resetPassword").addEventListener("click", async () => {
+      const email = $("loginEmail").value.trim().toLowerCase();
+
+      if (!email) {
+        return showMessage("Enter your email address first.");
+      }
+
+      try {
+        await sendPasswordResetEmail(auth, email);
+        showMessage(
+          "If an account exists for this address, a password reset email has been sent.",
+          "success"
+        );
+      } catch {
+        showMessage("Could not process the password reset request.");
+      }
+    });
+
+    onAuthStateChanged(auth, async user => {
+      if (user) {
+        try {
+          await signOut(auth);
+        } catch {}
+      }
+    });
+  </script>
+</body>
+</html>
+
