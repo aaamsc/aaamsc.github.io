@@ -195,9 +195,16 @@ const backendResponse = await fetch(
 const backendResult = await backendResponse.json();
 
 if (!backendResponse.ok || !backendResult.success) {
+  const diagnosticText = backendResult.diagnostic
+    ? JSON.stringify(backendResult.diagnostic, null, 2)
+    : "No diagnostic information received.";
+
   await signOut(auth);
+
   throw new Error(
-    backendResult.error || "Organizer authorization failed."
+    (backendResult.error || "Organizer authorization failed.") +
+    "\n\nDiagnostic:\n" +
+    diagnosticText
   );
 }
 
