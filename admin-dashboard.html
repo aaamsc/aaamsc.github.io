@@ -185,9 +185,11 @@
         dashboard.hidden = false;
 
       } catch (error) {
-        message.textContent =
-          "Unable to verify organizer access. Please try again.";
-      }
+  console.error("Dashboard error:", error);
+
+  message.textContent =
+    "Verification error: " + error.message;
+}
     });
 
     logoutButton.addEventListener("click", async () => {
