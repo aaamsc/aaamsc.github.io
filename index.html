@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -64,6 +65,7 @@
     select:invalid { color: #7f89ad; }
     select option { color: #111; }
     input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(157,123,255,.17); }
+    input[readonly] { color: #a9fff1; border-color: rgba(53,214,196,.3); }
     .choices { display: flex; gap: 10px; }
     .choice { flex: 1; position: relative; }
     .choice input { position: absolute; opacity: 0; width: 1px; height: 1px; }
@@ -119,13 +121,12 @@
         <span class="pill">✦ REGISTRATION</span>
       </div>
 
-      <!-- FormSubmit emails submissions to the organizer. The organizer must activate the
-           address using the confirmation email sent after the first test submission. -->
       <form id="registrationForm" action="https://formsubmit.co/jbrjubair7@gmail.com" method="POST">
         <input type="hidden" name="_subject" value="New AAAMSC Online Fest Registration">
         <input type="hidden" name="_template" value="table">
         <input type="hidden" name="_captcha" value="true">
         <input type="hidden" name="_next" value="">
+
         <div class="honeypot" aria-hidden="true">
           <label>Leave this field empty <input type="text" name="_honey" tabindex="-1" autocomplete="off"></label>
         </div>
@@ -136,9 +137,20 @@
             <input id="name" name="Full Name" type="text" placeholder="Enter your full name" autocomplete="name" maxlength="100" required>
           </div>
 
+          <div class="field full">
+            <label for="email">Email Address <span class="required">*</span></label>
+            <input id="email" name="Email Address" type="email" placeholder="Enter your active email address" autocomplete="email" maxlength="150" required>
+          </div>
+
           <div class="field">
-            <label for="class">Class <span class="required">*</span></label>
-            <input id="class" name="Class" type="text" placeholder="e.g. XI / XII" maxlength="30" required>
+            <label for="classLevel">Class <span class="required">*</span></label>
+            <select id="classLevel" name="Class" required>
+              <option value="" disabled selected>Select your class</option>
+              <option value="7">Class 7</option>
+              <option value="8">Class 8</option>
+              <option value="9">Class 9</option>
+              <option value="10">Class 10</option>
+            </select>
           </div>
 
           <div class="field">
@@ -153,12 +165,17 @@
 
           <div class="field">
             <label for="competition">Competition <span class="required">*</span></label>
-            <input id="competition" name="Competition" type="text" placeholder="Enter competition name" maxlength="100" required>
+            <select id="competition" name="Competition" required>
+              <option value="" disabled selected>Select competition</option>
+              <option value="Mathematics Olympiad">Mathematics Olympiad</option>
+              <option value="Science Olympiad">Science Olympiad</option>
+              <option value="English Quiz">English Quiz</option>
+            </select>
           </div>
 
           <div class="field">
-            <label for="category">Category <span class="required">*</span></label>
-            <input id="category" name="Category" type="text" placeholder="Enter category" maxlength="100" required>
+            <label for="category">Category (Automatic)</label>
+            <input id="category" name="Category" type="text" placeholder="Select your class first" readonly required>
           </div>
 
           <div class="field">
@@ -176,8 +193,6 @@
               <label class="choice"><input type="radio" name="Previous Participation" value="No" required><span>No</span></label>
             </div>
           </div>
-        </div>
-
 
           <div class="field full">
             <div style="margin-top:8px;padding:18px;border:1px solid rgba(255,112,184,.35);border-radius:16px;background:linear-gradient(135deg,rgba(226,45,115,.16),rgba(157,123,255,.12));">
@@ -207,6 +222,7 @@
               <span style="color:#e7eaff;line-height:1.5;">I have sent ৳20 by bKash Send Money and the payment details above are correct. <span class="required">*</span></span>
             </label>
           </div>
+        </div>
 
         <button id="submitButton" type="submit">SUBMIT REGISTRATION & PAYMENT DETAILS <span aria-hidden="true">→</span></button>
         <div id="status" class="status" role="alert"></div>
@@ -220,9 +236,25 @@
     const form = document.getElementById('registrationForm');
     const button = document.getElementById('submitButton');
     const statusBox = document.getElementById('status');
+    const classSelect = document.getElementById('classLevel');
+    const categoryInput = document.getElementById('category');
+
+    // Automatically assign the category based on class.
+    classSelect.addEventListener('change', function () {
+      const selectedClass = Number(classSelect.value);
+
+      if (selectedClass === 7 || selectedClass === 8) {
+        categoryInput.value = 'Category 01';
+      } else if (selectedClass === 9 || selectedClass === 10) {
+        categoryInput.value = 'Category 02';
+      } else {
+        categoryInput.value = '';
+      }
+    });
 
     form.addEventListener('submit', async function (event) {
       event.preventDefault();
+
       if (!form.reportValidity()) return;
 
       button.disabled = true;
@@ -236,16 +268,26 @@
           body: new FormData(form),
           headers: { 'Accept': 'application/json' }
         });
-        if (!response.ok) throw new Error('Submission was not accepted.');
+
+        if (!response.ok) {
+          throw new Error('Submission was not accepted.');
+        }
 
         statusBox.className = 'status success';
-        statusBox.textContent = '✓ Submission completed! Your registration details have been sent to the organizer. Your payment will be checked manually.';
+        statusBox.textContent =
+          '✓ Submission completed! Your registration details have been sent to the organizer. Your payment will be checked manually.';
+
         form.reset();
+        categoryInput.value = '';
+
         button.textContent = 'SUBMIT ANOTHER REGISTRATION';
         button.disabled = false;
+
       } catch (error) {
         statusBox.className = 'status error';
-        statusBox.textContent = 'We could not confirm your submission. Please check your internet connection and try again. If this continues, contact the organizer.';
+        statusBox.textContent =
+          'We could not confirm your submission. Please check your internet connection and try again. If this continues, contact the organizer.';
+
         button.disabled = false;
         button.textContent = 'TRY SUBMITTING AGAIN';
       }
