@@ -38,6 +38,11 @@ button{
   margin:3px;
 }
 
+button:disabled{
+  opacity:.5;
+  cursor:not-allowed;
+}
+
 .primary{background:#243c9b;color:white}
 .success{background:#16834b;color:white}
 .danger{background:#c93636;color:white}
@@ -60,12 +65,27 @@ button{
   margin:12px 0;
 }
 
-input,select{
+input,select,textarea{
+  width:100%;
   padding:12px;
   border:1px solid #ccd2df;
   border-radius:7px;
   font-size:15px;
-  min-width:180px;
+  background:white;
+  color:#182039;
+}
+
+textarea{
+  min-height:100px;
+  resize:vertical;
+}
+
+.field{margin:13px 0}
+
+.field label{
+  display:block;
+  font-weight:bold;
+  margin-bottom:7px;
 }
 
 #message{
@@ -73,9 +93,10 @@ input,select{
   border-radius:8px;
   margin:12px 0;
   display:none;
+  overflow-wrap:anywhere;
 }
 
-.participant{
+.participant,.competition,.question{
   border:1px solid #e0e4ed;
   padding:15px;
   border-radius:10px;
@@ -83,7 +104,9 @@ input,select{
   overflow-wrap:anywhere;
 }
 
-.participant h3{margin:0 0 10px}
+.participant h3,.competition h3,.question h3{
+  margin:0 0 10px;
+}
 
 .detail{
   margin:6px 0;
@@ -97,7 +120,7 @@ input,select{
   border-radius:20px;
   background:#edf0f7;
   font-size:12px;
-  margin:3px 3px 3px 0;
+  margin:3px;
 }
 
 .actions{
@@ -106,13 +129,43 @@ input,select{
   margin-top:12px;
 }
 
+.option-grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:10px;
+}
+
+.option-label{
+  font-size:13px;
+  font-weight:bold;
+  margin-bottom:5px;
+  display:block;
+}
+
+.section-title{
+  margin-top:0;
+}
+
+.small-note{
+  font-size:13px;
+  color:#667085;
+  line-height:1.5;
+}
+
 #loading{
   text-align:center;
   padding:25px;
 }
 
-@media(min-width:750px){
+hr{
+  border:0;
+  border-top:1px solid #e5e7eb;
+  margin:18px 0;
+}
+
+@media(min-width:650px){
   body{max-width:1100px;margin:auto}
+  .option-grid{grid-template-columns:1fr 1fr}
 }
 </style>
 </head>
@@ -131,35 +184,204 @@ input,select{
 
 <main id="dashboard">
 
-  <section class="panel">
-    <h2>Participants Management</h2>
-    <p>Review registrations and verify payments.</p>
+<!-- ================================= -->
+<!-- PARTICIPANTS MANAGEMENT -->
+<!-- ================================= -->
 
-    <div class="controls">
-      <input
-        id="search"
-        type="search"
-        placeholder="Search name, email or ID"
-      >
+<section class="panel">
+  <h2 class="section-title">Participants Management</h2>
+  <p>Review registrations and verify payments.</p>
 
-      <select id="statusFilter">
-        <option value="all">All registrations</option>
-        <option value="pending">Pending</option>
-        <option value="approved">Approved</option>
-        <option value="rejected">Rejected</option>
-      </select>
+  <div class="controls">
+    <input id="search" type="search"
+      placeholder="Search name, email or ID">
 
-      <button id="refreshBtn" class="primary">
-        Refresh Participants
-      </button>
+    <select id="statusFilter">
+      <option value="all">All registrations</option>
+      <option value="pending">Pending</option>
+      <option value="approved">Approved</option>
+      <option value="rejected">Rejected</option>
+    </select>
+
+    <button id="refreshBtn" class="primary">
+      Refresh Participants
+    </button>
+  </div>
+
+  <p id="participantCount">Loading participants...</p>
+  <div id="participantsList"></div>
+</section>
+
+
+<!-- ================================= -->
+<!-- COMPETITION MANAGEMENT -->
+<!-- ================================= -->
+
+<section class="panel">
+  <h2 class="section-title">Competition Management</h2>
+
+  <p>Manage the six competition categories.</p>
+
+  <button id="refreshCompetitionsBtn" class="primary">
+    Refresh Competitions
+  </button>
+
+  <div id="competitionsList">
+    Loading competitions...
+  </div>
+</section>
+
+
+<!-- ================================= -->
+<!-- QUESTION BANK -->
+<!-- ================================= -->
+
+<section class="panel">
+  <h2 class="section-title">Question Bank</h2>
+
+  <p>Create and manage MCQ questions for each competition.</p>
+
+  <div class="field">
+    <label for="questionCompetition">
+      Select Competition
+    </label>
+
+    <select id="questionCompetition">
+      <option value="">Loading competitions...</option>
+    </select>
+  </div>
+
+  <button id="loadQuestionsBtn" class="primary">
+    Load Questions
+  </button>
+
+  <hr>
+
+  <h3 id="questionFormTitle">Add New Question</h3>
+
+  <form id="questionForm">
+
+    <div class="field">
+      <label for="questionText">Question</label>
+      <textarea id="questionText"
+        maxlength="5000"
+        required
+        placeholder="Write your question here"></textarea>
     </div>
 
-    <p id="participantCount">Loading participants...</p>
+    <div class="field">
+      <label>Options (A–H)</label>
 
-    <div id="participantsList"></div>
-  </section>
+      <div class="option-grid">
+
+        <div>
+          <label class="option-label">Option A</label>
+          <input id="optionA" required maxlength="1000">
+        </div>
+
+        <div>
+          <label class="option-label">Option B</label>
+          <input id="optionB" required maxlength="1000">
+        </div>
+
+        <div>
+          <label class="option-label">Option C</label>
+          <input id="optionC" required maxlength="1000">
+        </div>
+
+        <div>
+          <label class="option-label">Option D</label>
+          <input id="optionD" required maxlength="1000">
+        </div>
+
+        <div>
+          <label class="option-label">Option E</label>
+          <input id="optionE" required maxlength="1000">
+        </div>
+
+        <div>
+          <label class="option-label">Option F</label>
+          <input id="optionF" required maxlength="1000">
+        </div>
+
+        <div>
+          <label class="option-label">Option G</label>
+          <input id="optionG" required maxlength="1000">
+        </div>
+
+        <div>
+          <label class="option-label">Option H</label>
+          <input id="optionH" required maxlength="1000">
+        </div>
+
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="correctOption">Correct Answer</label>
+
+      <select id="correctOption" required>
+        <option value="">Select correct answer</option>
+        <option value="A">Option A</option>
+        <option value="B">Option B</option>
+        <option value="C">Option C</option>
+        <option value="D">Option D</option>
+        <option value="E">Option E</option>
+        <option value="F">Option F</option>
+        <option value="G">Option G</option>
+        <option value="H">Option H</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="marks">Marks</label>
+      <input id="marks" type="number"
+        min="0.01" max="100" step="0.01"
+        value="1" required>
+    </div>
+
+    <div class="field">
+      <label for="questionOrder">
+        Question Order
+      </label>
+
+      <input id="questionOrder" type="number"
+        min="1" step="1"
+        placeholder="Leave empty for automatic order">
+    </div>
+
+    <div class="field">
+      <label for="explanation">
+        Explanation (Optional)
+      </label>
+
+      <textarea id="explanation"
+        maxlength="3000"
+        placeholder="Explain why this answer is correct"></textarea>
+    </div>
+
+    <button type="submit" id="saveQuestionBtn"
+      class="success">
+      Save Question
+    </button>
+
+    <button type="button" id="cancelEditBtn"
+      class="neutral" hidden>
+      Cancel Editing
+    </button>
+
+  </form>
+
+  <hr>
+
+  <h3>Saved Questions</h3>
+  <p id="questionCount">Select a competition first.</p>
+  <div id="questionsList"></div>
+
+</section>
 
 </main>
+
 
 <script type="module">
 
@@ -181,11 +403,24 @@ const messageBox = document.getElementById("message");
 const participantsList =
 document.getElementById("participantsList");
 
+const competitionsList =
+document.getElementById("competitionsList");
+
+const questionsList =
+document.getElementById("questionsList");
+
 let currentUser = null;
 let participants = [];
+let competitions = [];
+let questions = [];
+let editingQuestionId = null;
 
 
-function showMessage(message, error=false){
+// =================================
+// GENERAL HELPERS
+// =================================
+
+function showMessage(message,error=false){
 
   messageBox.textContent = message;
   messageBox.style.display = "block";
@@ -195,10 +430,40 @@ function showMessage(message, error=false){
 
   messageBox.style.color =
     error ? "#a00000" : "#126333";
+
+  window.scrollTo({top:0,behavior:"smooth"});
 }
 
 
-async function apiRequest(path, method="GET", body=null){
+function createElement(tag,text,className){
+
+  const element = document.createElement(tag);
+
+  if(text !== undefined){
+    element.textContent = text;
+  }
+
+  if(className){
+    element.className = className;
+  }
+
+  return element;
+}
+
+
+function addDetail(parent,label,value){
+
+  parent.appendChild(
+    createElement(
+      "p",
+      label + ": " + (value ?? "Not provided"),
+      "detail"
+    )
+  );
+}
+
+
+async function apiRequest(path,method="GET",body=null){
 
   if(!currentUser){
     throw new Error("Organizer is not logged in.");
@@ -218,16 +483,22 @@ async function apiRequest(path, method="GET", body=null){
   const data = await response.json();
 
   if(!response.ok || data.success === false){
-    throw new Error(data.message || "Request failed.");
+    throw new Error(
+      data.error || data.message || "Request failed."
+    );
   }
 
   return data;
 }
 
 
+// =================================
+// PARTICIPANT MANAGEMENT
+// =================================
+
 async function loadParticipants(){
 
-  participantsList.textContent = "Loading...";
+  participantsList.textContent = "Loading participants...";
 
   try{
 
@@ -239,113 +510,9 @@ async function loadParticipants(){
 
     renderParticipants();
 
-    showMessage("Participant list updated.");
-
   }catch(error){
 
     participantsList.textContent = "";
-    showMessage(error.message,true);
-
-  }
-}
-
-
-function createElement(tag, text, className){
-
-  const element = document.createElement(tag);
-
-  if(text !== undefined){
-    element.textContent = text;
-  }
-
-  if(className){
-    element.className = className;
-  }
-
-  return element;
-}
-
-
-function addDetail(parent,label,value){
-
-  const p = createElement(
-    "p",
-    label + ": " + (value ?? "Not provided"),
-    "detail"
-  );
-
-  parent.appendChild(p);
-}
-
-
-function addAction(parent,label,className,callback){
-
-  const button = createElement(
-    "button",
-    label,
-    className
-  );
-
-  button.addEventListener("click",callback);
-
-  parent.appendChild(button);
-}
-
-
-async function participantAction(id,action){
-
-  const confirmed = confirm(
-    "Are you sure you want to " + action +
-    " this registration?"
-  );
-
-  if(!confirmed)return;
-
-  try{
-
-    await apiRequest(
-      "/api/admin/participant-action",
-      "POST",
-      {id,action}
-    );
-
-    showMessage(
-      "Registration " + action + " successful."
-    );
-
-    await loadParticipants();
-
-  }catch(error){
-
-    showMessage(error.message,true);
-
-  }
-}
-
-
-async function paymentAction(id,action){
-
-  const confirmed = confirm(
-    "Are you sure you want to " + action +
-    " this payment?"
-  );
-
-  if(!confirmed)return;
-
-  try{
-
-    await apiRequest(
-      "/api/admin/payment-action",
-      "POST",
-      {id,action}
-    );
-
-    showMessage("Payment status updated.");
-
-    await loadParticipants();
-
-  }catch(error){
-
     showMessage(error.message,true);
 
   }
@@ -372,12 +539,8 @@ function renderParticipants(){
       p.class_level
     ].join(" ").toLowerCase();
 
-    const matchesSearch = text.includes(search);
-
-    const matchesStatus =
-      filter === "all" || p.status === filter;
-
-    return matchesSearch && matchesStatus;
+    return text.includes(search) &&
+      (filter === "all" || p.status === filter);
 
   });
 
@@ -400,18 +563,16 @@ function renderParticipants(){
   filtered.forEach(p=>{
 
     const card = createElement(
-      "article",
-      undefined,
-      "participant"
+      "article",undefined,"participant"
     );
 
     card.appendChild(
       createElement("h3",p.name || "Unnamed participant")
     );
 
-    const idText = p.participant_id || "Not assigned";
+    addDetail(card,"Participant ID",
+      p.participant_id || "Not assigned");
 
-    addDetail(card,"Participant ID",idText);
     addDetail(card,"Email",p.email);
     addDetail(card,"Class",p.class_level);
     addDetail(card,"Section",p.section);
@@ -427,68 +588,38 @@ function renderParticipants(){
     const statuses = createElement("div");
 
     statuses.appendChild(
-      createElement(
-        "span",
-        "Registration: " + p.status,
-        "status"
-      )
+      createElement("span","Registration: "+p.status,"status")
     );
 
     statuses.appendChild(
-      createElement(
-        "span",
-        "Payment: " + p.payment_status,
-        "status"
-      )
+      createElement("span","Payment: "+p.payment_status,"status")
     );
 
     card.appendChild(statuses);
 
-
-    const actions = createElement(
-      "div",
-      undefined,
-      "actions"
-    );
+    const actions = createElement("div",undefined,"actions");
 
 
     if(p.status === "pending"){
 
-      addAction(
-        actions,
-        "Approve Registration",
-        "success",
-        ()=>participantAction(p.id,"approve")
-      );
+      addAction(actions,"Approve Registration","success",
+        ()=>participantAction(p.id,"approve"));
 
-      addAction(
-        actions,
-        "Reject Registration",
-        "danger",
-        ()=>participantAction(p.id,"reject")
-      );
+      addAction(actions,"Reject Registration","danger",
+        ()=>participantAction(p.id,"reject"));
 
     }
 
 
     if(p.payment_status === "pending"){
 
-      addAction(
-        actions,
-        "Verify Payment",
-        "primary",
-        ()=>paymentAction(p.id,"verify")
-      );
+      addAction(actions,"Verify Payment","primary",
+        ()=>paymentAction(p.id,"verify"));
 
-      addAction(
-        actions,
-        "Reject Payment",
-        "danger",
-        ()=>paymentAction(p.id,"reject")
-      );
+      addAction(actions,"Reject Payment","danger",
+        ()=>paymentAction(p.id,"reject"));
 
     }
-
 
     card.appendChild(actions);
     participantsList.appendChild(card);
@@ -498,7 +629,508 @@ function renderParticipants(){
 }
 
 
-// Search and filters
+function addAction(parent,label,className,callback){
+
+  const button = createElement(
+    "button",label,className
+  );
+
+  button.addEventListener("click",callback);
+  parent.appendChild(button);
+}
+
+
+async function participantAction(id,action){
+
+  if(!confirm(
+    "Are you sure you want to "+action+" this registration?"
+  ))return;
+
+  try{
+
+    await apiRequest(
+      "/api/admin/participant-action",
+      "POST",
+      {id,action}
+    );
+
+    showMessage("Registration "+action+" successful.");
+
+    await loadParticipants();
+
+  }catch(error){
+
+    showMessage(error.message,true);
+
+  }
+}
+
+
+async function paymentAction(id,action){
+
+  if(!confirm(
+    "Are you sure you want to "+action+" this payment?"
+  ))return;
+
+  try{
+
+    await apiRequest(
+      "/api/admin/payment-action",
+      "POST",
+      {id,action}
+    );
+
+    showMessage("Payment status updated.");
+
+    await loadParticipants();
+
+  }catch(error){
+
+    showMessage(error.message,true);
+
+  }
+}
+
+
+// =================================
+// COMPETITION MANAGEMENT
+// =================================
+
+async function loadCompetitions(){
+
+  competitionsList.textContent = "Loading competitions...";
+
+  try{
+
+    const data = await apiRequest(
+      "/api/admin/competitions"
+    );
+
+    competitions = data.competitions || [];
+
+    renderCompetitions();
+    populateCompetitionSelect();
+
+  }catch(error){
+
+    competitionsList.textContent = "";
+    showMessage(error.message,true);
+
+  }
+}
+
+
+function renderCompetitions(){
+
+  competitionsList.replaceChildren();
+
+  if(competitions.length === 0){
+
+    competitionsList.appendChild(
+      createElement("p","No competitions found.")
+    );
+
+    return;
+  }
+
+  competitions.forEach(c=>{
+
+    const card = createElement(
+      "article",undefined,"competition"
+    );
+
+    card.appendChild(
+      createElement("h3",c.segment || c.name)
+    );
+
+    addDetail(card,"Category",c.category);
+    addDetail(card,"Competition ID",c.id);
+    addDetail(card,"Duration",c.duration_minutes+" minutes");
+
+    card.appendChild(
+      createElement("span","Status: "+c.status,"status")
+    );
+
+    const actions = createElement("div",undefined,"actions");
+
+    ["draft","active","closed"].forEach(status=>{
+
+      const button = createElement(
+        "button",
+        status.charAt(0).toUpperCase()+status.slice(1),
+        status === "active" ? "success" : "neutral"
+      );
+
+      button.disabled = c.status === status;
+
+      button.addEventListener("click",()=>{
+        changeCompetitionStatus(c.id,status);
+      });
+
+      actions.appendChild(button);
+
+    });
+
+    card.appendChild(actions);
+    competitionsList.appendChild(card);
+
+  });
+
+}
+
+
+async function changeCompetitionStatus(id,status){
+
+  if(!confirm(
+    "Change this competition status to "+status+"?"
+  ))return;
+
+  try{
+
+    await apiRequest(
+      "/api/admin/competition-action",
+      "POST",
+      {id,status}
+    );
+
+    showMessage("Competition status updated.");
+
+    await loadCompetitions();
+
+  }catch(error){
+
+    showMessage(error.message,true);
+
+  }
+}
+
+
+function populateCompetitionSelect(){
+
+  const select =
+    document.getElementById("questionCompetition");
+
+  const previousValue = select.value;
+
+  select.replaceChildren();
+
+  select.appendChild(
+    new Option("Select a competition","")
+  );
+
+  competitions.forEach(c=>{
+
+    const label =
+      c.segment+" - "+c.category+" (ID: "+c.id+")";
+
+    select.appendChild(
+      new Option(label,String(c.id))
+    );
+
+  });
+
+  if(competitions.some(c=>String(c.id)===previousValue)){
+    select.value = previousValue;
+  }
+
+}
+
+
+// =================================
+// QUESTION BANK
+// =================================
+
+async function loadQuestions(){
+
+  const competitionId =
+    document.getElementById("questionCompetition").value;
+
+  if(!competitionId){
+
+    questionsList.textContent = "Select a competition first.";
+    return;
+
+  }
+
+  questionsList.textContent = "Loading questions...";
+
+  try{
+
+    const data = await apiRequest(
+      "/api/admin/questions?competition_id="+
+      encodeURIComponent(competitionId)
+    );
+
+    questions = data.questions || [];
+
+    renderQuestions();
+
+  }catch(error){
+
+    questionsList.textContent = "";
+    showMessage(error.message,true);
+
+  }
+
+}
+
+
+function renderQuestions(){
+
+  questionsList.replaceChildren();
+
+  document.getElementById("questionCount")
+    .textContent = questions.length+" questions saved.";
+
+  if(questions.length === 0){
+
+    questionsList.appendChild(
+      createElement("p","No questions added yet.")
+    );
+
+    return;
+  }
+
+  questions.forEach(q=>{
+
+    const card = createElement(
+      "article",undefined,"question"
+    );
+
+    card.appendChild(
+      createElement(
+        "h3",
+        "Question "+q.question_order+
+        " (ID: "+q.id+")"
+      )
+    );
+
+    addDetail(card,"Question",q.question_text);
+
+    const letters = ["A","B","C","D","E","F","G","H"];
+
+    letters.forEach(letter=>{
+
+      addDetail(
+        card,
+        "Option "+letter,
+        q["option_"+letter.toLowerCase()]
+      );
+
+    });
+
+    addDetail(card,"Correct Answer",q.correct_option);
+    addDetail(card,"Marks",q.marks);
+    addDetail(card,"Explanation",q.explanation || "Not provided");
+
+    const actions = createElement("div",undefined,"actions");
+
+    addAction(actions,"Edit Question","primary",()=>{
+      editQuestion(q);
+    });
+
+    addAction(actions,"Delete Question","danger",()=>{
+      deleteQuestion(q.id);
+    });
+
+    card.appendChild(actions);
+    questionsList.appendChild(card);
+
+  });
+
+}
+
+
+// =================================
+// QUESTION FORM
+// =================================
+
+function resetQuestionForm(){
+
+  document.getElementById("questionForm").reset();
+
+  document.getElementById("marks").value = "1";
+
+  editingQuestionId = null;
+
+  document.getElementById("questionFormTitle")
+    .textContent = "Add New Question";
+
+  document.getElementById("saveQuestionBtn")
+    .textContent = "Save Question";
+
+  document.getElementById("cancelEditBtn")
+    .hidden = true;
+
+}
+
+
+function editQuestion(q){
+
+  editingQuestionId = q.id;
+
+  document.getElementById("questionCompetition").value =
+    String(q.competition_id);
+
+  document.getElementById("questionText").value =
+    q.question_text;
+
+  const letters = ["a","b","c","d","e","f","g","h"];
+
+  letters.forEach(letter=>{
+
+    document.getElementById(
+      "option"+letter.toUpperCase()
+    ).value = q["option_"+letter];
+
+  });
+
+  document.getElementById("correctOption").value =
+    q.correct_option;
+
+  document.getElementById("marks").value = q.marks;
+
+  document.getElementById("questionOrder").value =
+    q.question_order;
+
+  document.getElementById("explanation").value =
+    q.explanation || "";
+
+  document.getElementById("questionFormTitle")
+    .textContent = "Edit Question #"+q.id;
+
+  document.getElementById("saveQuestionBtn")
+    .textContent = "Update Question";
+
+  document.getElementById("cancelEditBtn")
+    .hidden = false;
+
+  document.getElementById("questionForm")
+    .scrollIntoView({behavior:"smooth"});
+
+}
+
+
+async function saveQuestion(event){
+
+  event.preventDefault();
+
+  const competitionId =
+    Number(document.getElementById("questionCompetition").value);
+
+  if(!competitionId){
+
+    showMessage("Select a competition first.",true);
+    return;
+
+  }
+
+  const letters = ["A","B","C","D","E","F","G","H"];
+
+  const options = letters.map(letter=>
+    document.getElementById("option"+letter).value.trim()
+  );
+
+  const orderValue =
+    document.getElementById("questionOrder").value.trim();
+
+  const payload = {
+
+    competitionId,
+
+    questionText:
+      document.getElementById("questionText").value.trim(),
+
+    options,
+
+    correctOption:
+      document.getElementById("correctOption").value,
+
+    marks:
+      Number(document.getElementById("marks").value),
+
+    questionOrder:
+      orderValue ? Number(orderValue) : null,
+
+    explanation:
+      document.getElementById("explanation").value.trim()
+
+  };
+
+  if(editingQuestionId !== null){
+    payload.id = editingQuestionId;
+  }
+
+  const saveButton =
+    document.getElementById("saveQuestionBtn");
+
+  saveButton.disabled = true;
+
+  try{
+
+    await apiRequest(
+      "/api/admin/question-save",
+      "POST",
+      payload
+    );
+
+    showMessage(
+      editingQuestionId !== null
+        ? "Question updated successfully."
+        : "Question created successfully."
+    );
+
+    resetQuestionForm();
+
+    await loadQuestions();
+
+  }catch(error){
+
+    showMessage(error.message,true);
+
+  }finally{
+
+    saveButton.disabled = false;
+
+  }
+
+}
+
+
+async function deleteQuestion(id){
+
+  if(!confirm(
+    "Delete this question permanently? This cannot be undone."
+  ))return;
+
+  try{
+
+    await apiRequest(
+      "/api/admin/question-delete",
+      "POST",
+      {id}
+    );
+
+    showMessage("Question deleted successfully.");
+
+    if(editingQuestionId === id){
+      resetQuestionForm();
+    }
+
+    await loadQuestions();
+
+  }catch(error){
+
+    showMessage(error.message,true);
+
+  }
+
+}
+
+
+// =================================
+// EVENT LISTENERS
+// =================================
 
 document.getElementById("search")
 .addEventListener("input",renderParticipants);
@@ -509,8 +1141,28 @@ document.getElementById("statusFilter")
 document.getElementById("refreshBtn")
 .addEventListener("click",loadParticipants);
 
+document.getElementById("refreshCompetitionsBtn")
+.addEventListener("click",loadCompetitions);
 
-// Organizer authentication
+document.getElementById("loadQuestionsBtn")
+.addEventListener("click",loadQuestions);
+
+document.getElementById("questionCompetition")
+.addEventListener("change",()=>{
+  resetQuestionForm();
+  loadQuestions();
+});
+
+document.getElementById("questionForm")
+.addEventListener("submit",saveQuestion);
+
+document.getElementById("cancelEditBtn")
+.addEventListener("click",resetQuestionForm);
+
+
+// =================================
+// AUTHENTICATION
+// =================================
 
 onAuthStateChanged(auth,async user=>{
 
@@ -530,12 +1182,15 @@ onAuthStateChanged(auth,async user=>{
     loading.style.display = "none";
     dashboard.style.display = "block";
 
-    await loadParticipants();
+    await Promise.all([
+      loadParticipants(),
+      loadCompetitions()
+    ]);
 
   }catch(error){
 
     showMessage(
-      "Organizer verification failed: " + error.message,
+      "Organizer verification failed: "+error.message,
       true
     );
 
@@ -548,7 +1203,7 @@ onAuthStateChanged(auth,async user=>{
 });
 
 
-// Logout
+// LOGOUT
 
 document.getElementById("logoutBtn")
 .addEventListener("click",async()=>{
