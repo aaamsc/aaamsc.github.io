@@ -320,6 +320,7 @@
         user = credential.user;
 
         await sendEmailVerification(user);
+        await signOut(auth);
 
         showMessage(
           "Account created! Please verify your email using the link sent to your inbox. After verification, return here and log in.",
@@ -425,13 +426,7 @@
       }
     });
 
-    onAuthStateChanged(auth, async user => {
-      if (user) {
-        try {
-          await signOut(auth);
-        } catch {}
-      }
-    });
+  
   </script>
 </body>
 </html>
